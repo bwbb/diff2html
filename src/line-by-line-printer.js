@@ -125,14 +125,14 @@
 
             processedOldLines +=
               that.makeLineHtml(file.isCombined, deleteType, oldLine.oldNumber, oldLine.newNumber,
-                diff.first.line, diff.first.prefix);
+                diff.first.line, block.isImportBlock, diff.first.prefix);
             processedNewLines +=
               that.makeLineHtml(file.isCombined, insertType, newLine.oldNumber, newLine.newNumber,
-                diff.second.line, diff.second.prefix);
+                diff.second.line, block.isImportBlock, diff.second.prefix);
           }
 
           lines += processedOldLines + processedNewLines;
-          lines += that._processLines(file.isCombined, oldLines.slice(common), newLines.slice(common));
+          lines += that._processLines(file.isCombined, oldLines.slice(common), newLines.slice(common), block);
         });
 
         oldLines = [];
@@ -142,16 +142,16 @@
       for (var i = 0; i < block.lines.length; i++) {
         var line = block.lines[i];
         var escapedLine = utils.escape(line.content);
-
+        
         if (line.type !== diffParser.LINE_TYPE.INSERTS &&
           (newLines.length > 0 || (line.type !== diffParser.LINE_TYPE.DELETES && oldLines.length > 0))) {
           processChangeBlock();
         }
 
         if (line.type === diffParser.LINE_TYPE.CONTEXT) {
-          lines += that.makeLineHtml(file.isCombined, line.type, line.oldNumber, line.newNumber, escapedLine);
+          lines += that.makeLineHtml(file.isCombined, line.type, line.oldNumber, line.newNumber, escapedLine, block.isImportBlock);
         } else if (line.type === diffParser.LINE_TYPE.INSERTS && !oldLines.length) {
-          lines += that.makeLineHtml(file.isCombined, line.type, line.oldNumber, line.newNumber, escapedLine);
+          lines += that.makeLineHtml(file.isCombined, line.type, line.oldNumber, line.newNumber, escapedLine, block.isImportBlock);
         } else if (line.type === diffParser.LINE_TYPE.DELETES) {
           oldLines.push(line);
         } else if (line.type === diffParser.LINE_TYPE.INSERTS && Boolean(oldLines.length)) {
@@ -168,25 +168,25 @@
     }).join('\n');
   };
 
-  LineByLinePrinter.prototype._processLines = function(isCombined, oldLines, newLines) {
+  LineByLinePrinter.prototype._processLines = function(isCombined, oldLines, newLines, block) {
     var lines = '';
 
     for (var i = 0; i < oldLines.length; i++) {
       var oldLine = oldLines[i];
       var oldEscapedLine = utils.escape(oldLine.content);
-      lines += this.makeLineHtml(isCombined, oldLine.type, oldLine.oldNumber, oldLine.newNumber, oldEscapedLine);
+      lines += this.makeLineHtml(isCombined, oldLine.type, oldLine.oldNumber, oldLine.newNumber, oldEscapedLine, block.isImportBlock);
     }
 
     for (var j = 0; j < newLines.length; j++) {
       var newLine = newLines[j];
       var newEscapedLine = utils.escape(newLine.content);
-      lines += this.makeLineHtml(isCombined, newLine.type, newLine.oldNumber, newLine.newNumber, newEscapedLine);
+      lines += this.makeLineHtml(isCombined, newLine.type, newLine.oldNumber, newLine.newNumber, newEscapedLine, block.isImportBlock);
     }
 
     return lines;
   };
 
-  LineByLinePrinter.prototype.makeLineHtml = function(isCombined, type, oldNumber, newNumber, content, possiblePrefix) {
+  LineByLinePrinter.prototype.makeLineHtml = function(isCombined, type, oldNumber, newNumber, content, isImportLine, possiblePrefix) {
     var lineNumberTemplate = hoganUtils.render(baseTemplatesPath, 'numbers', {
       oldNumber: utils.valueOrEmpty(oldNumber),
       newNumber: utils.valueOrEmpty(newNumber)
@@ -194,7 +194,8 @@
 
     var lineWithoutPrefix = content;
     var prefix = possiblePrefix;
-
+    var lineClassList = isImportLine ? 'd2h-code-line d2h-import-line' : 'd2h-code-line';
+    
     if (!prefix) {
       var lineWithPrefix = printerUtils.separatePrefix(isCombined, content);
       prefix = lineWithPrefix.prefix;
@@ -205,7 +206,7 @@
       {
         type: type,
         lineClass: 'd2h-code-linenumber',
-        contentClass: 'd2h-code-line',
+        contentClass: lineClassList,
         prefix: prefix,
         content: lineWithoutPrefix,
         lineNumber: lineNumberTemplate

@@ -130,15 +130,15 @@
       currentBlock.header = line;
     }
     
-    function checkForImportPrefixes(line, block, prefixArray) {
+    function checkForImportPrefixes(line, prefixArray) {
       var importPrefixes = prefixArray.map(function(prefix) {
         return prefix + 'import ';
       });
       
       if (utils.startsWith(line, importPrefixes)) {
-        block.isImportBlock = true;
-      } else {
-        block.isImportBlock = false;
+        line.isImportBlock = true;
+      } else if (line.length >= 'import'.length) {
+        line.isImportBlock = false;
       }
     }
 
@@ -156,8 +156,7 @@
         currentLine.type = LINE_TYPE.INSERTS;
         currentLine.oldNumber = null;
         currentLine.newNumber = newLine++;
-        
-        checkForImportPrefixes(line, currentBlock, newLinePrefixes);
+        checkForImportPrefixes(currentLine, newLinePrefixes);
 
         currentBlock.lines.push(currentLine);
       } else if (utils.startsWith(line, delLinePrefixes)) {
@@ -166,7 +165,7 @@
         currentLine.type = LINE_TYPE.DELETES;
         currentLine.oldNumber = oldLine++;
         currentLine.newNumber = null;
-        checkForImportPrefixes(line, currentBlock, delLinePrefixes);
+        checkForImportPrefixes(currentLine, delLinePrefixes);
         currentBlock.lines.push(currentLine);
       } else {
         currentLine.type = LINE_TYPE.CONTEXT;
