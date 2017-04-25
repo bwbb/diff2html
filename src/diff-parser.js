@@ -129,6 +129,18 @@
       currentBlock.newStartLine = newLine;
       currentBlock.header = line;
     }
+    
+    function checkForImportPrefixes(line, block, prefixArray) {
+      var importPrefixes = prefixArray.map(function(prefix) {
+        return prefix + 'import ';
+      });
+      
+      if (utils.startsWith(line, importPrefixes)) {
+        block.isImportBlock = true;
+      } else {
+        block.isImportBlock = false;
+      }
+    }
 
     function createLine(line) {
       var currentLine = {};
@@ -144,6 +156,8 @@
         currentLine.type = LINE_TYPE.INSERTS;
         currentLine.oldNumber = null;
         currentLine.newNumber = newLine++;
+        
+        checkForImportPrefixes(line, currentBlock, newLinePrefixes);
 
         currentBlock.lines.push(currentLine);
       } else if (utils.startsWith(line, delLinePrefixes)) {
@@ -152,7 +166,7 @@
         currentLine.type = LINE_TYPE.DELETES;
         currentLine.oldNumber = oldLine++;
         currentLine.newNumber = null;
-
+        checkForImportPrefixes(line, currentBlock, delLinePrefixes);
         currentBlock.lines.push(currentLine);
       } else {
         currentLine.type = LINE_TYPE.CONTEXT;
