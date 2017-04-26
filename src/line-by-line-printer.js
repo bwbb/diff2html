@@ -194,7 +194,7 @@
 
     var lineWithoutPrefix = content;
     var prefix = possiblePrefix;
-    var lineClassList = isImportLine ? 'd2h-code-line d2h-import-line' : 'd2h-code-line';
+    var lineRowClass = isImportLine ? 'd2h-import-line' : '';
     
     if (!prefix) {
       var lineWithPrefix = printerUtils.separatePrefix(isCombined, content);
@@ -206,7 +206,8 @@
       {
         type: type,
         lineClass: 'd2h-code-linenumber',
-        contentClass: lineClassList,
+        lineRowClass: lineRowClass,
+        contentClass: 'd2h-code-line',
         prefix: prefix,
         content: lineWithoutPrefix,
         lineNumber: lineNumberTemplate
